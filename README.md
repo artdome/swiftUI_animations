@@ -63,4 +63,9 @@ New animations are added as new TikTok videos come out. ⭐ Star the repo to kee
 
 ## License
 
-[MIT](LICENSE). Use it in your own apps, videos and projects.
+[PolyForm Noncommercial 1.0.0](LICENSE).
+
+- ✅ Free for personal projects, learning, experiments and non-profit use. Fork it, change it, share it, but keep the license and the copyright notice.
+- ❌ **Commercial use is not allowed**: no paid apps, client work or company products.
+
+Want to use something from here in a commercial project? Contact me on GitHub ([@artdome](https://github.com/artdome)) and we can talk about a license.
