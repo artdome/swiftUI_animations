@@ -2,6 +2,10 @@
 //  RainbowTornadoView.swift
 //  Rainbow particle tornado with tumbling 3D dice — SwiftUI, iOS 17+
 //
+//  Copyright (c) 2026 Arturs (https://github.com/artdome)
+//  SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//  Free for non-commercial use. Commercial use is not allowed. See LICENSE.md.
+//
 //  How to run:
 //  • Simulator / iPhone: make it the root view in your App file:
 //        WindowGroup { RainbowTornadoView() }

@@ -1,5 +1,7 @@
 # SwiftUI Animations 🎲🌪️
 
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange)](LICENSE.md) ![iOS 17+](https://img.shields.io/badge/iOS-17%2B-blue) ![SwiftUI](https://img.shields.io/badge/SwiftUI-Canvas-purple)
+
 Satisfying animations made **100% in SwiftUI code**. No videos, no images, no 3D engine. Just `TimelineView`, `Canvas` and a bit of math.
 
 Every animation here was shown in a TikTok video. Each one is a single Swift file: drop it into any iOS 17+ project and run it.
@@ -57,13 +59,13 @@ Every file has its tunable numbers (speed, count, gravity, colors) at the top.
 ## Follow
 
 - 📱 Randomaker on the App Store: https://apps.apple.com/lv/app/randomaker/id6811426551
-- 🎬 TikTok: https://www.tiktok.com/@artdome.cc?is_from_webapp=1&sender_device=pc
+- 🎬 TikTok: https://www.tiktok.com/@artdome.cc
 
 New animations are added as new TikTok videos come out. ⭐ Star the repo to keep up!
 
 ## License
 
-[PolyForm Noncommercial 1.0.0](LICENSE).
+[PolyForm Noncommercial 1.0.0](LICENSE.md).
 
 - ✅ Free for personal projects, learning, experiments and non-profit use. Fork it, change it, share it, but keep the license and the copyright notice.
 - ❌ **Commercial use is not allowed**: no paid apps, client work or company products.

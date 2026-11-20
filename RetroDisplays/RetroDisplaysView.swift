@@ -2,6 +2,10 @@
 //  RetroDisplaysView.swift
 //  Three monochrome retro displays drawn with SwiftUI Canvas — iOS 17+
 //
+//  Copyright (c) 2026 Arturs (https://github.com/artdome)
+//  SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//  Free for non-commercial use. Commercial use is not allowed. See LICENSE.md.
+//
 //  • RetroLCDView    — green pixel LCD (handheld console / old phone style) with a tumbling pixel die
 //  • LEDBoardView    — amber dot-matrix LED board with a marquee and a rolling random number
 //  • CRTTerminalView — green phosphor terminal that types Randomaker commands by itself
