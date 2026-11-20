@@ -16,7 +16,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 |---|-----------|------|---------------|
 | 1 | 🌪️ **Rainbow Tornado** | [`RainbowTornado/RainbowTornadoView.swift`](RainbowTornado/RainbowTornadoView.swift) | 1,800 glowing particles in a swaying funnel, plus 3D dice tumbling around it |
 | 2 | 🎲 **Dice Explosion** | [`DiceExplosion/DiceExplosionView.swift`](DiceExplosion/DiceExplosionView.swift) | 50 3D dice explode, bounce on a table, settle on a face and add up to a total |
-| 3 | 📟 **Retro Displays** | [`RetroDisplays/RetroDisplaysView.swift`](RetroDisplays/RetroDisplaysView.swift) | Three monochrome screens: a green pixel LCD rolling a die, an amber LED board picking a number, a green CRT terminal typing commands. Swipe between them in `RetroDisplaysGallery` |
+| 3 | 📟 **Retro Displays** | [`RetroDisplays/RetroDisplaysView.swift`](RetroDisplays/RetroDisplaysView.swift) | Three monochrome screens that react to taps: a green pixel LCD that rolls a die, an amber LED board that picks a number, a green CRT terminal that runs a command on every tap. Swipe between them in `RetroDisplaysGallery` |
 
 ---
 

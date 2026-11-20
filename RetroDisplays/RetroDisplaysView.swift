@@ -1,14 +1,18 @@
 //
 //  RetroDisplaysView.swift
-//  Three monochrome retro displays drawn with SwiftUI Canvas — iOS 17+
+//  Three monochrome retro displays drawn with SwiftUI Canvas, driven by taps. iOS 17+
 //
 //  Copyright (c) 2026 Arturs (https://github.com/artdome)
 //  SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 //  Free for non-commercial use. Commercial use is not allowed. See LICENSE.md.
 //
-//  • RetroLCDView    — green pixel LCD (handheld console / old phone style) with a tumbling pixel die
-//  • LEDBoardView    — amber dot-matrix LED board with a marquee and a rolling random number
-//  • CRTTerminalView — green phosphor terminal that types Randomaker commands by itself
+//  • RetroLCDView    : green pixel LCD. Tap to roll a pixel die.
+//  • LEDBoardView    : amber dot-matrix LED board. Tap to pick a random number 1-100.
+//  • CRTTerminalView : green phosphor terminal. Each tap runs the next Randomaker command.
+//
+//  Every tap shows a ring where the finger touched (handy for screen recordings,
+//  where the finger itself is not visible) and gives a light haptic.
+//  Set showTouches: false to hide the ring.
 //
 //  How to run:
 //  • Make one of them (or the swipeable gallery) the root view in your App file:
@@ -22,11 +26,13 @@ import SwiftUI
 // MARK: - Gallery (swipe between the three displays)
 
 struct RetroDisplaysGallery: View {
+    var showTouches = true
+
     var body: some View {
         TabView {
-            RetroLCDView()
-            LEDBoardView()
-            CRTTerminalView()
+            RetroLCDView(showTouches: showTouches)
+            LEDBoardView(showTouches: showTouches)
+            CRTTerminalView(showTouches: showTouches)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .background(Color.black)
@@ -38,8 +44,10 @@ struct RetroDisplaysGallery: View {
 // MARK: - 1. Green pixel LCD
 
 struct RetroLCDView: View {
+    var showTouches = true
+
     private static let cols = 84, rows = 48          // classic small-phone LCD resolution
-    private static let cycle = 4.5                   // seconds per roll
+    private static let rollTime = 2.2                // seconds the die tumbles
 
     // LCD palette
     private let glassLight = Color(red: 0.66, green: 0.75, blue: 0.20)
@@ -47,53 +55,63 @@ struct RetroLCDView: View {
     private let pixelOff   = Color(red: 0.50, green: 0.59, blue: 0.10)
     private let pixelOn    = Color(red: 0.09, green: 0.19, blue: 0.07)
 
-    @State private var start = Date()
     @State private var lcd = PixelPersistence()
+    @State private var rollStart: Date?
+    @State private var result = 6
+    @State private var rolls = 0
+    @State private var ripple: TapRipple?
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
-                let t = timeline.date.timeIntervalSince(start)
-                let frame = Self.frame(at: t)
-                lcd.update(with: frame, date: timeline.date, response: 0.07)   // slow LCD pixels = motion blur
+                let now = timeline.date
+                let elapsed = rollStart.map { now.timeIntervalSince($0) }
+                let frame = Self.frame(elapsed: elapsed, result: result, clock: now.timeIntervalSinceReferenceDate)
+                lcd.update(with: frame, date: now, response: 0.07)   // slow LCD pixels = motion blur
                 draw(context, size: size)
+                if showTouches, let ripple { drawRipple(ripple, in: context, now: now, color: .white) }
             }
         }
         .background(Color(white: 0.08))
         .ignoresSafeArea()
         .statusBarHidden()
+        .contentShape(Rectangle())
+        .onTapGesture { location in
+            ripple = TapRipple(location: location, start: Date())
+            if let s = rollStart, Date().timeIntervalSince(s) < Self.rollTime { return }   // still rolling
+            result = Int.random(in: 1...6)
+            rollStart = Date()
+            rolls += 1
+        }
+        .sensoryFeedback(.impact(weight: .medium), trigger: rolls)
     }
 
-    /// What the LCD should show at time t (pixel on/off).
-    private static func frame(at t: Double) -> PixelBuffer {
+    /// What the LCD shows. elapsed = seconds since the last tap, nil before the first one.
+    private static func frame(elapsed: Double?, result: Int, clock: Double) -> PixelBuffer {
         var b = PixelBuffer(width: cols, height: rows)
-        let n = Int(t / cycle)
-        let ct = t - Double(n) * cycle
-        var rng = SeededRNG(seed: UInt64(n + 1) &* 0x9E3779B97F4A7C15)
-        let result = Int.random(in: 1...6, using: &rng)
-
         b.centeredText("RANDOMAKER", y: 1)
         for x in 0..<cols where x % 2 == 0 { b.set(x, 10) }
 
-        // Roll: faces change fast, then slower and slower (speed 14 → 2 faces/s)
-        let rollTime = 2.2
+        // Roll: faces change fast, then slower and slower (14 → 2 faces/s), ending on the result
         var face = result
         var lift = 0
-        if ct < rollTime {
-            let p = ct / rollTime
-            let flips = Int(14 * ct - 6 * ct * p)
+        if let e = elapsed, e < rollTime {
+            let p = e / rollTime
+            let flips = Int(14 * e - 6 * e * p)
             let totalFlips = Int(8 * rollTime)
             face = (result - 1 + (totalFlips - flips)) % 6 + 1
-            lift = Int((abs(sin(ct * .pi * 3)) * 6 * (1 - p)).rounded())
+            lift = Int((abs(sin(e * .pi * 3)) * 6 * (1 - p)).rounded())
         }
         drawDie(&b, face: face, cx: cols / 2, cy: 25 - lift)
 
-        if ct < rollTime {
-            let dots = String(repeating: ".", count: Int(ct * 4) % 4)
+        if let e = elapsed, e < rollTime {
+            let dots = String(repeating: ".", count: Int(e * 4) % 4)
             b.text("ROLLING" + dots, x: (cols - PixelBuffer.textWidth("ROLLING...")) / 2, y: 40)
-        } else {
-            let blinking = ct < rollTime + 0.9 && Int((ct - rollTime) * 6) % 2 == 1
+        } else if let e = elapsed, e < rollTime + 3.5 {
+            let blinking = e < rollTime + 0.9 && Int((e - rollTime) * 6) % 2 == 1
             if !blinking { b.centeredText("YOU ROLLED \(result)", y: 40) }
+        } else if Int(clock * 1.6) % 2 == 0 {
+            b.centeredText("TAP TO ROLL", y: 40)
         }
         return b
     }
@@ -168,41 +186,58 @@ struct RetroLCDView: View {
 // MARK: - 2. Amber LED dot-matrix board
 
 struct LEDBoardView: View {
+    var showTouches = true
+
     private static let cols = 64, rows = 27
-    private static let cycle = 5.0
-    private static let marquee = "RANDOMAKER * RANDOM NUMBER 1-100 * "
+    private static let rollTime = 2.6
+    private static let marquee = "RANDOMAKER * TAP FOR A RANDOM NUMBER * "
 
     private let ledOn  = Color(red: 1.00, green: 0.60, blue: 0.14)     // Randomaker orange
     private let ledHot = Color(red: 1.00, green: 0.85, blue: 0.55)
     private let ledOff = Color(red: 0.20, green: 0.09, blue: 0.03)
 
-    @State private var start = Date()
     @State private var leds = PixelPersistence()
+    @State private var rollStart: Date?
+    @State private var rollID = 0
+    @State private var salt = UInt64.random(in: 0...UInt64.max)      // new numbers every launch
+    @State private var ripple: TapRipple?
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
-                let t = timeline.date.timeIntervalSince(start)
-                leds.update(with: Self.frame(at: t), date: timeline.date, response: 0.03)
+                let now = timeline.date
+                let elapsed = rollStart.map { now.timeIntervalSince($0) }
+                leds.update(with: Self.frame(clock: now.timeIntervalSinceReferenceDate, elapsed: elapsed,
+                                             rollID: rollID, salt: salt),
+                            date: now, response: 0.03)
                 draw(context, size: size)
+                if showTouches, let ripple { drawRipple(ripple, in: context, now: now, color: ledHot) }
             }
         }
         .background(Color(white: 0.03))
         .ignoresSafeArea()
         .statusBarHidden()
+        .contentShape(Rectangle())
+        .onTapGesture { location in
+            ripple = TapRipple(location: location, start: Date())
+            if let s = rollStart, Date().timeIntervalSince(s) < Self.rollTime { return }   // still rolling
+            rollID += 1
+            rollStart = Date()
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: rollID)
     }
 
-    private static func number(cycle n: Int, step: Int) -> Int {
-        var rng = SeededRNG(seed: UInt64(n + 1) &* 0x9E3779B97F4A7C15 &+ UInt64(step) &* 0xBF58476D1CE4E5B9)
+    private static func number(roll: Int, step: Int, salt: UInt64) -> Int {
+        var rng = SeededRNG(seed: salt ^ (UInt64(roll) &* 0x9E3779B97F4A7C15 &+ UInt64(step) &* 0xBF58476D1CE4E5B9))
         return Int.random(in: 1...100, using: &rng)
     }
 
-    private static func frame(at t: Double) -> PixelBuffer {
+    private static func frame(clock: Double, elapsed: Double?, rollID: Int, salt: UInt64) -> PixelBuffer {
         var b = PixelBuffer(width: cols, height: rows)
 
         // Marquee on the top line
         let unit = PixelBuffer.textWidth(marquee) + 1
-        let offset = Int(t * 22) % unit
+        let offset = Int(clock * 22) % unit
         var x = -offset
         while x < cols {
             b.text(marquee, x: x, y: 1)
@@ -210,13 +245,15 @@ struct LEDBoardView: View {
         }
         for x in 0..<cols where x % 2 == 0 { b.set(x, 10) }
 
-        // Rolling number: fast at first, slowing down (25 → 3 changes/s), then blinks
-        let n = Int(t / cycle)
-        let ct = t - Double(n) * cycle
-        let rollTime = 2.6
+        guard let e = elapsed else {
+            if Int(clock * 1.6) % 2 == 0 { b.centeredText("TAP", y: 12, scale: 2) }
+            return b
+        }
+
+        // Rolling number: fast at first, slowing down (25 → 3 changes/s), then blinks on the result
         let steps = { (s: Double) in Int(25 * s - 11 * s * s / rollTime) }
-        let value = number(cycle: n, step: steps(min(ct, rollTime)))
-        let blinking = ct > rollTime && ct < rollTime + 1.2 && Int((ct - rollTime) * 5) % 2 == 1
+        let value = number(roll: rollID, step: steps(min(e, rollTime)), salt: salt)
+        let blinking = e > rollTime && e < rollTime + 1.2 && Int((e - rollTime) * 5) % 2 == 1
         if !blinking {
             b.centeredText("\(value)", y: 12, scale: 2)
         }
@@ -278,75 +315,87 @@ struct LEDBoardView: View {
 // MARK: - 3. Green phosphor CRT terminal
 
 struct CRTTerminalView: View {
+    var showTouches = true
+
     private let phosphor = Color(red: 0.35, green: 1.0, blue: 0.45)
-    private let typeSpeed = 16.0                     // characters per second
+    private static let typeSpeed = 16.0              // characters per second
+    private static let thinkTime = 0.35              // pause before the answer appears
 
-    @State private var start = Date()
-
-    private struct Step {
-        let text: String
-        let typed: Bool                              // typed by the "user" or printed by the computer
-        let pause: Double                            // wait after this line
+    private struct Entry {
+        let command: String
+        let output: String
+        let start: Date
     }
+
+    @State private var entries: [Entry] = []
+    @State private var nextCommand = 0
+    @State private var ripple: TapRipple?
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
-                draw(context, size: size, t: timeline.date.timeIntervalSince(start))
+                draw(context, size: size, now: timeline.date)
+                if showTouches, let ripple { drawRipple(ripple, in: context, now: timeline.date, color: phosphor) }
             }
         }
         .background(Color.black)
         .ignoresSafeArea()
         .statusBarHidden()
+        .contentShape(Rectangle())
+        .onTapGesture { location in
+            ripple = TapRipple(location: location, start: Date())
+            if let last = entries.last, Date().timeIntervalSince(last.start) < Self.busyTime(last) { return }
+            entries.append(Self.makeEntry(nextCommand))
+            nextCommand += 1
+            if entries.count > 40 { entries.removeFirst(entries.count - 40) }
+        }
+        .sensoryFeedback(.selection, trigger: nextCommand)
     }
 
-    private static func script(cycle n: Int) -> [Step] {
-        var rng = SeededRNG(seed: UInt64(n + 7) &* 0x9E3779B97F4A7C15)
-        let dice = (0..<3).map { _ in Int.random(in: 1...6, using: &rng) }
-        let coin = Bool.random(using: &rng) ? "HEADS" : "TAILS"
-        let number = Int.random(in: 1...100, using: &rng)
-        let chars = Array("abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789#$%&!?")
-        let password = String((0..<12).map { _ in chars[Int.random(in: 0..<chars.count, using: &rng)] })
-        return [
-            Step(text: "RANDOMAKER OS v1.0", typed: false, pause: 0.15),
-            Step(text: "READY.", typed: false, pause: 0.6),
-            Step(text: "> roll 3 dice", typed: true, pause: 0.35),
-            Step(text: "  " + dice.map { "[\($0)]" }.joined(separator: " ") + "  TOTAL \(dice.reduce(0, +))",
-                 typed: false, pause: 0.6),
-            Step(text: "> flip coin", typed: true, pause: 0.35),
-            Step(text: "  \(coin)", typed: false, pause: 0.6),
-            Step(text: "> random 1-100", typed: true, pause: 0.35),
-            Step(text: "  \(number)", typed: false, pause: 0.6),
-            Step(text: "> password 12", typed: true, pause: 0.35),
-            Step(text: "  \(password)", typed: false, pause: 3.0),
-        ]
+    private static func busyTime(_ e: Entry) -> Double {
+        Double(e.command.count) / typeSpeed + thinkTime
     }
 
-    private func duration(of steps: [Step]) -> Double {
-        steps.reduce(0) { $0 + ($1.typed ? Double($1.text.count) / typeSpeed : 0) + $1.pause }
+    /// The commands run in turn: dice, coin, number, password, and again with new values.
+    private static func makeEntry(_ index: Int) -> Entry {
+        switch index % 4 {
+        case 0:
+            let dice = (0..<3).map { _ in Int.random(in: 1...6) }
+            return Entry(command: "> roll 3 dice",
+                         output: "  " + dice.map { "[\($0)]" }.joined(separator: " ") + "  TOTAL \(dice.reduce(0, +))",
+                         start: Date())
+        case 1:
+            return Entry(command: "> flip coin", output: "  " + (Bool.random() ? "HEADS" : "TAILS"), start: Date())
+        case 2:
+            return Entry(command: "> random 1-100", output: "  \(Int.random(in: 1...100))", start: Date())
+        default:
+            let chars = Array("abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789#$%&!?")
+            return Entry(command: "> password 12", output: "  " + String((0..<12).map { _ in chars.randomElement()! }),
+                         start: Date())
+        }
     }
 
-    /// Lines visible at time ct of the current cycle.
-    private func lines(steps: [Step], at ct: Double) -> [String] {
-        var out: [String] = []
-        var time = 0.0
-        for s in steps {
-            let typing = s.typed ? Double(s.text.count) / typeSpeed : 0
-            if ct < time + typing {
-                out.append(String(s.text.prefix(Int((ct - time) * typeSpeed))))
+    /// Everything on screen right now, oldest line first.
+    private func lines(now: Date) -> [String] {
+        var out = ["RANDOMAKER OS v1.0", "READY.", "TAP TO RUN A COMMAND"]
+        for e in entries {
+            let elapsed = now.timeIntervalSince(e.start)
+            let typing = Double(e.command.count) / Self.typeSpeed
+            if elapsed < typing {
+                out.append(String(e.command.prefix(Int(elapsed * Self.typeSpeed))))
                 return out
             }
-            time += typing
-            out.append(s.text)
-            if ct < time + s.pause { return out }
-            time += s.pause
+            out.append(e.command)
+            if elapsed < typing + Self.thinkTime { return out }
+            out.append(e.output)
         }
         out.append("> ")
         return out
     }
 
-    private func draw(_ context: GraphicsContext, size: CGSize, t: Double) {
+    private func draw(_ context: GraphicsContext, size: CGSize, now: Date) {
         let w = Double(size.width), h = Double(size.height)
+        let t = now.timeIntervalSinceReferenceDate
 
         // Monitor body + screen
         let screen = CGRect(x: w * 0.06, y: h * 0.2, width: w * 0.88, height: h * 0.52)
@@ -364,17 +413,15 @@ struct CRTTerminalView: View {
         var crt = context
         crt.clip(to: screenPath)
 
-        // Current text
-        let cycleLength = duration(of: Self.script(cycle: 0))
-        let n = Int(t / cycleLength)
-        let ct = t - Double(n) * cycleLength
-        let visible = lines(steps: Self.script(cycle: n), at: ct)
-
         let fontSize = screen.width / (26 * 0.62)
         let font = Font.system(size: fontSize, weight: .semibold, design: .monospaced)
         let charW = crt.resolve(Text("M").font(font)).measure(in: CGSize(width: 1000, height: 1000)).width
         let lineH = fontSize * 1.32
         let x0 = screen.minX + 18, y0 = screen.minY + 22
+
+        // Keep only the lines that fit, like a real terminal scrolling up
+        let maxLines = max(1, Int((screen.height - 40) / lineH))
+        let visible = Array(lines(now: now).suffix(maxLines))
 
         let cursorOn = Int(t * 2.2) % 2 == 0
         func drawText(_ ctx: GraphicsContext, color: Color) {
@@ -399,13 +446,13 @@ struct CRTTerminalView: View {
         drawText(crt, color: phosphor)
 
         // Scanlines
-        var lines = Path()
+        var scan = Path()
         var y = screen.minY
         while y < screen.maxY {
-            lines.addRect(CGRect(x: screen.minX, y: y, width: screen.width, height: 1.2))
+            scan.addRect(CGRect(x: screen.minX, y: y, width: screen.width, height: 1.2))
             y += 3
         }
-        crt.fill(lines, with: .color(.black.opacity(0.28)))
+        crt.fill(scan, with: .color(.black.opacity(0.28)))
 
         // Slow rolling bright band
         let bandH = 140.0
@@ -435,6 +482,26 @@ struct CRTTerminalView: View {
                         .foregroundColor(Color(red: 0.36, green: 0.34, blue: 0.30)),
                      at: CGPoint(x: w / 2, y: shell.maxY - 10))
     }
+}
+
+// MARK: - Tap ring (shows where the finger touched)
+
+struct TapRipple {
+    let location: CGPoint
+    let start: Date
+}
+
+func drawRipple(_ ripple: TapRipple, in context: GraphicsContext, now: Date, color: Color) {
+    let age = now.timeIntervalSince(ripple.start)
+    guard age >= 0, age < 0.55 else { return }
+    let p = age / 0.55
+    let a = 1 - p
+    let r = 26 + 46 * (1 - pow(1 - p, 3))
+    let c = ripple.location
+    context.fill(Path(ellipseIn: CGRect(x: c.x - 24, y: c.y - 24, width: 48, height: 48)),
+                 with: .color(color.opacity(0.25 * a)))
+    context.stroke(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r)),
+                   with: .color(color.opacity(0.8 * a)), lineWidth: 3)
 }
 
 // MARK: - Shared: pixel buffer, 5×7 font, LCD/LED persistence
