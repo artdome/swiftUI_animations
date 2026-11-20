@@ -57,7 +57,7 @@ Every file has its tunable numbers (speed, count, gravity, colors) at the top.
 ## Follow
 
 - 📱 Randomaker on the App Store: https://apps.apple.com/lv/app/randomaker/id6811426551
-- 🎬 TikTok: *add your TikTok link here*
+- 🎬 TikTok: https://www.tiktok.com/@artdome.cc?is_from_webapp=1&sender_device=pc
 
 New animations are added as new TikTok videos come out. ⭐ Star the repo to keep up!
 
