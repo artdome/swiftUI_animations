@@ -17,6 +17,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 | 1 | 🌪️ **Rainbow Tornado** | [`RainbowTornado/RainbowTornadoView.swift`](RainbowTornado/RainbowTornadoView.swift) | 1,800 glowing particles in a swaying funnel, plus 3D dice tumbling around it |
 | 2 | 🎲 **Dice Explosion** | [`DiceExplosion/DiceExplosionView.swift`](DiceExplosion/DiceExplosionView.swift) | 50 3D dice explode, bounce on a table, settle on a face and add up to a total |
 | 3 | 📟 **Retro Displays** | [`RetroDisplays/RetroDisplaysView.swift`](RetroDisplays/RetroDisplaysView.swift) | Three monochrome screens that react to taps: a green pixel LCD that rolls a die, an amber LED board that picks a number, a green CRT terminal that runs a command on every tap. Swipe between them in `RetroDisplaysGallery` |
+| 4 | ⛈️ **Storm Sky** | [`StormSky/StormSkyView.swift`](StormSky/StormSkyView.swift) | Grey thunderstorm with drifting clouds and rain. Tap anywhere and 1 to 3 random lightning bolts strike, light up the clouds and fade out |
 
 ---
 
@@ -31,7 +32,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery()
+            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView()
         }
     }
 }
@@ -50,6 +51,7 @@ struct MyApp: App {
 - **3D dice without a 3D engine:** each face is rotated in 3D, back faces are hidden, and the visible ones are mapped to the screen with a `CGAffineTransform`. Opposite faces add up to 7, like a real die.
 - **Glow:** particles are drawn twice: once blurred and larger, once sharp, with `.plusLighter` blending.
 - **Retro Displays:** a tiny framebuffer with a hand-made 5×7 pixel font; each pixel fades on and off with a short delay, like real LCD crystals and LEDs. The CRT adds scanlines, a rolling band, flicker and a vignette.
+- **Lightning (Storm Sky):** each bolt is built with midpoint displacement: split the line, push the middle sideways, repeat, and sometimes fork. Every tap makes new bolts, so no two are the same.
 - **Physics (Dice Explosion):** simple gravity, bounces with energy loss, table friction. Each die then rolls onto its nearest face, and the top face is the number it rolled.
 
 Every file has its tunable numbers (speed, count, gravity, colors) at the top.
