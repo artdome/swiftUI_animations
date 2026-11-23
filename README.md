@@ -19,6 +19,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 | 3 | 📟 **Retro Displays** | [`RetroDisplays/RetroDisplaysView.swift`](RetroDisplays/RetroDisplaysView.swift) | Three monochrome screens that react to taps: a green pixel LCD that rolls a die, an amber LED board that picks a number, a green CRT terminal that runs a command on every tap. Swipe between them in `RetroDisplaysGallery` |
 | 4 | ⛈️ **Storm Sky** | [`StormSky/StormSkyView.swift`](StormSky/StormSkyView.swift) | Grey thunderstorm with drifting clouds and rain. Tap anywhere and 1 to 3 random lightning bolts strike, light up the clouds and fade out |
 | 5 | 🎃 **Haunted House** | [`HauntedHouse/HauntedHouseView.swift`](HauntedHouse/HauntedHouseView.swift) | Stormy night, full moon, bats and fog. Tap and a random window of the apartment block opens with one of 6 monsters inside (ghost, pumpkin, skull, horned shadow, zombie, black cat) |
+| 6 | 📊 **Galton Board** | [`GaltonBoard/GaltonBoardView.swift`](GaltonBoard/GaltonBoardView.swift) | Tap to drop 150 balls through 12 rows of pegs. Every bounce is a random 50/50, yet the bins always fill into the same bell curve |
 
 ---
 
@@ -33,7 +34,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView()
+            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView(), GaltonBoardView()
         }
     }
 }
