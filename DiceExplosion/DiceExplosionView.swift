@@ -10,6 +10,7 @@
 //  • Simulator / iPhone: make it the root view in your App file:
 //        WindowGroup { DiceExplosionView() }
 //    then Cmd+R. The first explosion starts by itself; tap anywhere for more.
+//  • More chaos: DiceExplosionView(title: "200 dice. 1 tap.", diceCount: 200)
 //  • Xcode preview: switch the preview to LIVE mode (▶︎), not "Selectable".
 //
 
@@ -20,12 +21,15 @@ struct DiceExplosionView: View {
     var autoReplay = true
     /// Hook text at the top of the screen. Set to nil to hide it.
     var title: String? = "50 dice. 1 tap."
+    /// How many dice fly out per tap. 200 is fun, the dice get a bit smaller so they fit.
+    var diceCount = 50
 
     @State private var sim = DiceSimulation()
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
+                sim.diceCount = diceCount
                 sim.step(to: timeline.date, size: size, autoReplay: autoReplay)
                 sim.draw(in: context, size: size, title: title)
             }
@@ -45,7 +49,7 @@ struct DiceExplosionView: View {
 final class DiceSimulation {
 
     // Tunables
-    let diceCount = 50
+    var diceCount = 50
     let gravity = 2600.0             // pt/s²
     let bounce = 0.42                // how much speed is kept after hitting the table
     let cameraPitch = -0.95          // look down at the table from above
@@ -338,7 +342,8 @@ final class DiceSimulation {
     }
 
     private func dieHalf(_ d: Die) -> Double {
-        15 * (0.62 + 0.55 * d.depth)          // nearer dice are bigger
+        let crowd = min(1, max(0.6, (50.0 / Double(max(1, diceCount))).squareRoot()))   // smaller when there are many
+        return 15 * crowd * (0.62 + 0.55 * d.depth)          // nearer dice are bigger
     }
 
     // MARK: 3D die
