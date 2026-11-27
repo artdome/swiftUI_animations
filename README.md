@@ -23,6 +23,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 | 7 | 🎰 **Slot Machine** | [`SlotMachine/SlotMachineView.swift`](SlotMachine/SlotMachineView.swift) | Retro slot machine with chasing bulbs and a lever. Tap to spin, the reels stop one by one. Near misses tease you, a jackpot makes it rain coins |
 | 8 | 🪟 **Cracked Glass** | [`CrackedGlass/CrackedGlassView.swift`](CrackedGlass/CrackedGlassView.swift) | Every tap cracks the screen with a random spider-web crack. Tap too many times and the glass shatters and falls off |
 | 9 | 🪙 **Decision Coin** | [`DecisionCoin/DecisionCoinView.swift`](DecisionCoin/DecisionCoinView.swift) | A 3D coin with your two options on it, like `DecisionCoinView(sideA: "PIZZA", sideB: "SUSHI")`. Tap to flip, the side that lands up wins the argument |
+| 10 | ❄️ **Snowflakes** | [`Snowflakes/SnowflakeView.swift`](Snowflakes/SnowflakeView.swift) | Winter night. Tap and a brand new snowflake grows under your finger: 6 identical arms, but a random design every time. Then it drifts down and melts into the snow |
 
 ---
 
@@ -37,7 +38,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView(), GaltonBoardView(), SlotMachineView(), CrackedGlassView(), DecisionCoinView()
+            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView(), GaltonBoardView(), SlotMachineView(), CrackedGlassView(), DecisionCoinView(), SnowflakeView()
         }
     }
 }
