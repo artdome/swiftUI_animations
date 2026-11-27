@@ -24,6 +24,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 | 8 | 🪟 **Cracked Glass** | [`CrackedGlass/CrackedGlassView.swift`](CrackedGlass/CrackedGlassView.swift) | Every tap cracks the screen with a random spider-web crack. Tap too many times and the glass shatters and falls off |
 | 9 | 🪙 **Decision Coin** | [`DecisionCoin/DecisionCoinView.swift`](DecisionCoin/DecisionCoinView.swift) | A 3D coin with your two options on it, like `DecisionCoinView(sideA: "PIZZA", sideB: "SUSHI")`. Tap to flip, the side that lands up wins the argument |
 | 10 | ❄️ **Snowflakes** | [`Snowflakes/SnowflakeView.swift`](Snowflakes/SnowflakeView.swift) | Winter night. Tap and a brand new snowflake grows under your finger: 6 identical arms, but a random design every time. Then it drifts down and melts into the snow |
+| 11 | 🔦 **Sky Beam** | [`SkyBeam/SkyBeamView.swift`](SkyBeam/SkyBeamView.swift) | Snowy forest at night from above. Touch and a beam of light hits from the sky, drag and it follows your finger while the tree shadows swing away from it |
 
 ---
 
@@ -38,7 +39,7 @@ Made by the developer of **[Randomaker](https://apps.apple.com/lv/app/randomaker
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView(), GaltonBoardView(), SlotMachineView(), CrackedGlassView(), DecisionCoinView(), SnowflakeView()
+            DiceExplosionView()      // or RainbowTornadoView(), RetroDisplaysGallery(), StormSkyView(), HauntedHouseView(), GaltonBoardView(), SlotMachineView(), CrackedGlassView(), DecisionCoinView(), SnowflakeView(), SkyBeamView()
         }
     }
 }
